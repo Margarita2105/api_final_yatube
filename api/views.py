@@ -46,11 +46,10 @@ class FollowList(ListCreateAPIView):
             following = User.objects.get(username=self.request.data.get('following'))
         except User.DoesNotExist:
             raise ValidationError('not validation')
-        try:
-            follow_exist = Follow.objects.get(user=self.request.user, following = following)
+        f = Follow.objects.filter(user=self.request.user, following = following).exists()
+        if f:
             raise ValidationError('Вы уже подписаны на автора')
-        except Follow.DoesNotExist:
-            serializer.save(user=self.request.user, following = following)
+        serializer.save(user=self.request.user, following = following)
 
  
 class GroupViewSet(viewsets.ModelViewSet):
