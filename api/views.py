@@ -1,21 +1,19 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import DjangoFilterBackend
-
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, get_object_or_404
-from rest_framework.response import Response
 
 from .models import Post, Comment, Follow, Group, User
-from .serializers import PostSerializer, CommentSerializer, FollowSerializer, GroupSerializer
 from .permission import IsOwnerOrReadOnly
+from .serializers import PostSerializer, CommentSerializer, FollowSerializer, GroupSerializer
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsOwnerOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['group', ]
+    filterset_fields = ['group']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -31,7 +29,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, post=post)
 
     def get_queryset(self):
-        return Comment.objects.filter(post_id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs['post_id'])
+        return Comment.objects.filter(post=post)
 
 
 class FollowList(ListCreateAPIView):
@@ -39,6 +38,7 @@ class FollowList(ListCreateAPIView):
     serializer_class = FollowSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['=user__username', '=following__username']
+    
     def perform_create(self, serializer):
         try:
             following = User.objects.get(username=self.request.data.get('following'))
