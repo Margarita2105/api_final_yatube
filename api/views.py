@@ -1,7 +1,5 @@
-import django_filters.rest_framework
-
-from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import viewsets, filters, status
 from rest_framework.exceptions import ValidationError
@@ -16,8 +14,8 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsOwnerOrReadOnly]
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['group',]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['group', ]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -45,11 +43,12 @@ class FollowList(ListCreateAPIView):
         try:
             following = User.objects.get(username=self.request.data.get('following'))
         except User.DoesNotExist:
-            raise ValidationError('not validation')
-        f = Follow.objects.filter(user=self.request.user, following = following).exists()
-        if f:
+            raise ValidationError('Юзер не найден.')
+
+        if Follow.objects.filter(user=self.request.user, following=following).exists():
             raise ValidationError('Вы уже подписаны на автора')
-        serializer.save(user=self.request.user, following = following)
+
+        serializer.save(user=self.request.user, following=following)
 
  
 class GroupViewSet(viewsets.ModelViewSet):

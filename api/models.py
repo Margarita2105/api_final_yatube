@@ -27,14 +27,14 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     text = models.TextField()
     created = models.DateTimeField("Дата добавления", auto_now_add=True, db_index=True)
-    
+
 
 class Follow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
     following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
 
     class Meta:
-        unique_together = ['user', 'following']
+        unique_together = "user", "following"
         
     def __str__(self):
         return self.user
